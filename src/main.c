@@ -210,8 +210,8 @@ int main() {
     wordDistance = 0;
       // Convert int to string
     snprintf(charGuesses, sizeof(charGuesses), "%d", 6 - wrongGuesses);
-    
-
+      srand(time(NULL)); 
+    GetRandomWord(selectedWord);
     // 2. Re-hide and reset all the letters and dashes
     for (int i = 0; i < wordLength; i++) {
         wordDistance += wordIncrement;
