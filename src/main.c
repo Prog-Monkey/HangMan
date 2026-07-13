@@ -89,11 +89,12 @@ int input(char letter, char letters[]) {
 int main() {
   // Code here
   InitWindow(1000, 1000, "HangMan");
+  Image icon = LoadImage("img/icon.png");
+  SetWindowIcon(icon);
+  srand(time(NULL)); 
 
-  srand(time(NULL)); // <-- ADD THIS
-
-  char selectedWord[32];       // <-- CHANGE TO THIS
-  GetRandomWord(selectedWord);  // <-- ADD THIS to load the first word
+  char selectedWord[32];       
+  GetRandomWord(selectedWord);  
   size_t wordULength = strlen(selectedWord);
   int wordLength = (int)wordULength;
   wordLengthG = &wordLength;
@@ -241,7 +242,7 @@ int main() {
     }
     
   }
-    DrawText("Grey Lines are spaces. By Suga", 50, 960, 30, BLACK);
+    DrawText("Grey Lines are spaces. By Suga: github.com/Prog-Monkey", 50, 960, 30, BLACK);
 
     DrawText("Guesses Left: ", 50, 0, 40, BLACK);
     DrawText(charGuesses, 340, 0, 40, BLACK);
