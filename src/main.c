@@ -4,11 +4,6 @@
 #include <string.h>
 #include <time.h>
 
-/*
-Documentation: https://www.raylib.com/cheatsheet/cheatsheet.html
-Template fixed up!
-*/
-
 struct Rect {
   int x;
   int y;
@@ -32,19 +27,17 @@ struct Text {
   Color color;
 };
 
-// Reads a random word from "words.txt". 
-// Caps length at 9 letters so it fits neatly across your 1000px screen!
+// Reads a random word from "words.txt"
 void GetRandomWord(char *outputBuffer) {
     FILE *file = fopen("words.txt", "r");
     if (file == NULL) {
-        strcpy(outputBuffer, "apple"); // Safe fallback if file is missing
+        strcpy(outputBuffer, "apple"); // Safe fallback
         return;
     }
 
     char line[64];
     int validWordCount = 0;
 
-    // First pass: Count how many words fit our length constraint (3 to 9 characters)
     while (fgets(line, sizeof(line), file)) {
         line[strcspn(line, "\r\n")] = 0;
         size_t len = strlen(line);
@@ -61,7 +54,6 @@ void GetRandomWord(char *outputBuffer) {
 
     int targetWordIndex = rand() % validWordCount;
 
-    // Second pass: Jump back to the start and retrieve that specific word
     rewind(file);
     int currentValidIndex = 0;
     while (fgets(line, sizeof(line), file)) {
@@ -89,33 +81,14 @@ int input(char letter, const char selectedWord[], int length) {
   return 0;
 }
 
-int main() {
-  InitWindow(1000, 1000, "HangMan");
-  
-  // Try loading window icon safely
-  Image icon = LoadImage("img/icon.png");
-  if (icon.data != NULL) {
-      SetWindowIcon(icon);
-  }
-  
-  srand(time(NULL)); 
-
-  char selectedWord[32];       
-  GetRandomWord(selectedWord);  
-  int wordLength = (int)strlen(selectedWord);
-
-  int dashWidth = 50;
-  int dashHeight = 10;
-  int wordIncrement = dashWidth + 30;
-  int wordHeight = 700;
-
-  // Max word length is 9, so safe fixed-size buffers of 10 elements are perfect here
-  struct Rect rectangles[10];
-  struct Text letters[10];
-
-  // Helper to initialize the visual structures for the active word
-  void InitWordVisuals(int len, const char *word, struct Rect rects[], struct Text lets[]) {
+// FIXED: Defined OUTSIDE of main() so Clang compiles it happily!
+void InitWordVisuals(int len, const char *word, struct Rect rects[], struct Text lets[]) {
+    int dashWidth = 50;
+    int dashHeight = 10;
+    int wordIncrement = dashWidth + 30;
+    int wordHeight = 700;
     int wordDistance = 0;
+    
     struct Rect tempRect;
     struct Text tempLetter;
 
@@ -130,18 +103,36 @@ int main() {
       }
       tempLetter.invisible = 1;
       tempRect.x = wordDistance;
-      tempLetter.x = wordDistance + 10; // slightly shifted so letters sit nicely on top
+      tempLetter.x = wordDistance + 10; 
       tempRect.y = wordHeight;
       tempLetter.y = wordHeight - 70;
       tempRect.width = dashWidth;
       tempRect.height = dashHeight;
-      tempLetter.color = BLUE; // Changed to BLUE so it's easier to see on a white background
+      tempLetter.color = BLUE; 
       tempLetter.fontSize = 80;
       lets[i] = tempLetter;
       rects[i] = tempRect;
     }
-  }
+}
 
+int main() {
+  InitWindow(1000, 1000, "HangMan");
+  
+  Image icon = LoadImage("img/icon.png");
+  if (icon.data != NULL) {
+      SetWindowIcon(icon);
+  }
+  
+  srand(time(NULL)); 
+
+  char selectedWord[32];       
+  GetRandomWord(selectedWord);  
+  int wordLength = (int)strlen(selectedWord);
+
+  struct Rect rectangles[10];
+  struct Text letters[10];
+
+  // Initialize the visual layout
   InitWordVisuals(wordLength, selectedWord, rectangles, letters);
 
   struct Rect drawTempRect;
@@ -150,7 +141,7 @@ int main() {
   int key;
   int result;
   int wrongGuesses = 0;
-  int gameOver = 0; // 0 = playing, 1 = lost, 2 = won
+  int gameOver = 0; 
   char endMsg[] = "YOU LOST! THE WORD WAS:";
   char charGuesses[20];
 
@@ -176,7 +167,6 @@ int main() {
 
     // GAMEPLAY INPUT LOOP
     while (key > 0 && gameOver == 0) {
-      // Normalize letters to lowercase to make the game easier to play
       if (key >= 'A' && key <= 'Z') {
         key = key + 32; 
       }
@@ -184,14 +174,12 @@ int main() {
       if (key >= 'a' && key <= 'z') {
         result = input(key, selectedWord, wordLength);
         if (result == 1) {
-          // Reveal correctly guessed letters
           for (int i = 0; i < wordLength; i++) {
             if (key == letters[i].text) {
               letters[i].invisible = 0;
             }
           }
 
-          // Check Win Condition: Are there any hidden characters left?
           int stillHasHidden = 0;
           for (int i = 0; i < wordLength; i++) {
             if (letters[i].invisible == 1 && selectedWord[i] != ' ') {
@@ -200,13 +188,13 @@ int main() {
             }
           }
           if (!stillHasHidden) {
-            gameOver = 2; // Won
+            gameOver = 2; 
           }
 
         } else {
           wrongGuesses++;
           if (wrongGuesses >= 6) {
-            gameOver = 1; // Lost
+            gameOver = 1; 
           }
           snprintf(charGuesses, sizeof(charGuesses), "%d", 6 - wrongGuesses);
         }
@@ -218,12 +206,10 @@ int main() {
     BeginDrawing();
     ClearBackground(WHITE);
 
-    // Draw Core Game Stats
     DrawText("Grey Lines are spaces. By Suga: github.com/Prog-Monkey", 50, 960, 30, BLACK);
     DrawText("Guesses Left: ", 50, 0, 40, BLACK);
     DrawText(charGuesses, 340, 0, 40, BLACK);
 
-    // Draw Dashes and Revealed Letters
     for (int i = 0; i < wordLength; i++) {
       drawTempRect = rectangles[i];
       drawTempLetter = letters[i];
@@ -244,7 +230,7 @@ int main() {
     DrawRectangle(10, 200, 280, 20, BLACK);
     DrawRectangle(rope.x, rope.y, rope.width, rope.height, BROWN);
 
-    // Draw the Stickman incrementally based on wrong guesses
+    // Draw the Stickman based on wrong guesses
     if (wrongGuesses >= 1) {
       DrawCircle(head.x, head.y, head.radius, stickManColor);
     }
@@ -266,20 +252,16 @@ int main() {
 
     // GAME OVER SCREENS / RESTART BUTTON
     if (gameOver != 0) {
-      // Draw Restart Button
       if (CheckCollisionPointRec(mousePos, restartButton)) {
         restartColor = BLUE;
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-          // Reset game values safely
           wrongGuesses = 0;
           gameOver = 0;
           snprintf(charGuesses, sizeof(charGuesses), "%d", 6 - wrongGuesses);
           
-          // Fetch new word and recalculate length
           GetRandomWord(selectedWord);
           wordLength = (int)strlen(selectedWord);
 
-          // Re-init graphics structures
           InitWordVisuals(wordLength, selectedWord, rectangles, letters);
         }
       } else {
